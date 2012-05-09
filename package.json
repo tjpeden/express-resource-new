@@ -1,0 +1,23 @@
+{
+  "name": "express-resource-new",
+  "description": "An enhancement to express-resource",
+  "version": "0.0.5",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tpeden/express-resource-new"
+  },
+  "author": "TJ Peden <tj.peden@tj-coding.com>",
+  "depenedencies": {
+    "lingo": ">=0.0.4"
+  },
+  "devDependencies": {
+    "connect": "*",
+    "express": "*",
+    "jasmine-node": "*",
+    "should": "*",
+    "assert": "*"
+  },
+  "keywords": ["express", "rest", "resource", "resources"],
+  "main": "index",
+  "engines": { "node": ">= 0.2.0" }
+}
