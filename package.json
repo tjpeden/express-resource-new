@@ -7,15 +7,12 @@
     "url": "https://github.com/tpeden/express-resource-new"
   },
   "author": "TJ Peden <tj.peden@tj-coding.com>",
-  "depenedencies": {
-    "lingo": ">=0.0.4"
-  },
+  "dependencies": { "lingo": ">=0.0.4" },
   "devDependencies": {
     "connect": "*",
     "express": "*",
-    "jasmine-node": "*",
-    "should": "*",
-    "assert": "*"
+    "mocha": "*",
+    "should": "*"
   },
   "keywords": ["express", "rest", "resource", "resources"],
   "main": "index",
