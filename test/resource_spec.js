@@ -51,7 +51,7 @@ describe("app.resource", function() {
   it("should nest resources", function() {
     var resource;
     app.resource('articles', function() {
-      resource = this.resource('comments');
+      resource = app.resource('comments');
     });
     
     resource.routes[0].path.should.equal('/articles/:article/comments.:format?');
@@ -63,17 +63,5 @@ describe("app.resource", function() {
     resource.routes[6].path.should.equal('/articles/:article/comments/:comment.:format?');
   });
   
-  it("should respond with correct action", function() {
-    app.resource('articles');
-    
-    assert.response(app,
-      { url: '/articles' },
-      { body: 'index articles' }
-    );
-    
-    assert.response(app,
-      { url: '/articles/2' },
-      { body: 'show article 2' }
-    );
-  });
+  it("should respond with correct action");
 });

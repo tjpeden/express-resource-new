@@ -1,5 +1,5 @@
 /*
- * Express - Resources
+ * Express - Resources (New)
  * Copyright(c) 2012 TJ Peden <tj.peden@tj-coding.com>
  * MIT Licensed
  * 
@@ -49,11 +49,6 @@ function $(destination) { // extend
   return destination;
 }
 
-function loadController(app, name) {
-  var dir = app.settings.controllers;
-  return require(path.join(dir, name));
-}
-
 /**
  * Initialize a new `Resource` with the
  * given `name` and `actions`.
@@ -64,10 +59,10 @@ function loadController(app, name) {
  */
 
 var Resource = module.exports = function Resource(app, name, options) {
+  this.app = app;
   this.name = options.name || name;
   this.root = options.root || false;
-  this.base = this.root ? '/' : '/' + this.name;
-  this.app = app;
+  this.base = this._base();
   
   this.id = options.id || this._defaultId();
   
@@ -130,6 +125,18 @@ $(Resource.prototype, {
       'id' : lingo.en.singularize(this.name);
   },
   
+  _base: function() {
+    var base;
+    
+    if('_base' in this.app) {
+      base = this.app._base + '/' + this.name;
+    } else {
+      base = '/' + this.root ? '' : this.name; 
+    }
+    
+    return base;
+  },
+  
   /**
    * Record the `method` and `path` a given `action`
    * is mapped to. Also preserves order.
@@ -144,28 +151,13 @@ $(Resource.prototype, {
     });
   },
   
-  resource: function(name, options, nest) {
-    var app = this.app;
+  _nest: function(callback) {
+    var prev = this.app._base;
+    this.app._base = this.path('show');
     
-    if('function' == typeof options)
-      nest = options, options = {};
+    callback.call(this.app);
     
-    var controller = loadController(app, name);
-    var options = $({}, controller.options, options);
-    var resource = new Resource(app, name, options);
-    
-    name = lingo.en.singularize(this.name) +
-        '_' + resource.name;
-    app.resources[name] = resource;
-    
-    
-    resource.base = this.path('show') + resource.base;
-    resource._init(controller);
-    if('function' == typeof nest) {
-      nest.apply(resource);
-    }
-    
-    return resource;
+    this.app._base = prev;
   },
   
   /**
@@ -229,22 +221,46 @@ $(Resource.prototype, {
   }
 });
 
-express.HTTPServer.prototype.resource =
-express.HTTPSServer.prototype.resource = function(name, options, nest) {
-  if('function' == typeof options)
-    nest = options, options = {};
+var methods = {
+  _load: function(name) {
+    this._loaded = this._loaded || {};
+    
+    if(!(name in this._loaded)) {
+      var dir = this.settings.controllers;
+      this._loaded[name] = require(path.join(dir, name));
+    }
+    
+    return this._loaded[name];
+  },
   
-  this.resources = this.resources || {};
-  var controller = loadController(this, name);
-  var options = $({}, controller.options, options);
-  var resource = new Resource(this, name, options);
-  
-  this.resources[resource.name] = resource;
-  
-  resource._init(controller);
-  if('function' == typeof nest) {
-    nest.apply(resource);
+  addResource: function(resource, nested) {
+    var name = this._trail.map(function(name) {
+      return lingo.en.singularize(name);
+    }).concat(resource.name).join('_');
+    
+    this.resources[name] = resource;
   }
   
-  return resource;
+  resource: function(name, options, callback) {
+    if('function' == typeof options)
+      callback = options, options = {};
+    
+    this._trail = this._trail || [];
+    this.resources = this.resources || {};
+    var controller = this._load(this, name);
+    var options = $({}, controller.options, options);
+    var resource = new Resource(this, name, options);
+    
+    this.addResource(resource);
+    
+    resource._init(controller);
+    if('function' == typeof nest) {
+      resource._nest(callback);
+    }
+    
+    return resource;
+  }
 }
+
+$(express.HTTPServer.prototype, methods);
+$(express.HTTPSServer.prototype, methods);
