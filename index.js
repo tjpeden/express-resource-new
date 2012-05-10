@@ -128,10 +128,10 @@ $(Resource.prototype, {
   _base: function() {
     var base;
     
-    if('_base' in this.app) {
+    if('_base' in this.app && this.app._base.length > 0) {
       base = this.app._base + '/' + this.name;
     } else {
-      base = '/' + this.root ? '' : this.name; 
+      base = '/' + (this.root ? '' : this.name);
     }
     
     return base;
@@ -154,10 +154,12 @@ $(Resource.prototype, {
   _nest: function(callback) {
     var prev = this.app._base;
     this.app._base = this.path('show');
+    this.app._trail.push(this.name);
     
-    callback.call(this.app);
+    callback.apply(this.app);
     
     this.app._base = prev;
+    this.app._trail.pop();
   },
   
   /**
@@ -239,7 +241,7 @@ var methods = {
     }).concat(resource.name).join('_');
     
     this.resources[name] = resource;
-  }
+  },
   
   resource: function(name, options, callback) {
     if('function' == typeof options)
@@ -247,14 +249,14 @@ var methods = {
     
     this._trail = this._trail || [];
     this.resources = this.resources || {};
-    var controller = this._load(this, name);
+    var controller = this._load(name);
     var options = $({}, controller.options, options);
     var resource = new Resource(this, name, options);
     
     this.addResource(resource);
     
     resource._init(controller);
-    if('function' == typeof nest) {
+    if('function' == typeof callback) {
       resource._nest(callback);
     }
     
