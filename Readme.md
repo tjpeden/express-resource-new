@@ -1,9 +1,11 @@
 # Express Resource (new)
-  express-resouce-new provides resourceful routing to express with improved nesting and auto-require.
+
+express-resouce-new provides resourceful routing to express with improved nesting and auto-require.
 
 ## Installation
 
 npm:
+
     $ npm install express-resource-new
 
 ## Usage
@@ -21,7 +23,7 @@ In your main application file (i.e. app.js or server.js) just add the following:
       /* ... */
     });
 
-Now in the `./controllers` directory you can put your "controllers" with one or more of the following supported actions:
+Now in the `./controllers` directory you can put your "controllers" with one or more of the following supported actions as follows:
 
 `./controllers/articles/index.js`
 
@@ -49,7 +51,7 @@ Now in the `./controllers` directory you can put your "controllers" with one or 
       }
     };
 
-express-resource-new also supports a special action that gets called for all other actions called `all`
+express-resource-new also supports a special action, `all`, that gets called for all other actions.
 
     module.exports = {
       all: function(request, response, next) {
@@ -76,7 +78,7 @@ express-resource-new also supports a special action that gets called for all oth
       /* ... */
     };
 
-Lastly just call `app.resource()` with your controller name. Nesting is done by passing a function that can call `app.resource()` for each nested resource.
+Lastly just call `app.resource()` with your controller name. Nesting is done by passing a function that can call `app.resource()` for each nested resource. Options can also be passed as the second parameter.
 
     var express = require('express'),
         Resource = require('express-resource-new'),
@@ -89,7 +91,7 @@ Lastly just call `app.resource()` with your controller name. Nesting is done by 
     });
     
     app.resource('articles', function() {
-      app.resource('comments'); // You can also call this.resource('comments')
+      app.resource('comments', { id: 'id' }); // You can also call this.resource('comments')
     });
 
 ## Default Action Mapping
