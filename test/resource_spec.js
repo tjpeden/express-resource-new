@@ -58,5 +58,31 @@ describe("app.resource", function() {
     resource.routes[6].path.should.equal('/posts/:id.:format?');
   });
   
+  it("should create all the appropriate nested routes for a resource", function() {
+    var resource;
+    app.resource('articles', function() {
+      resource = this.resource('comments');
+    });
+    
+    resource.routes[0].path.should.equal("/articles/:article/comments.:format?");
+    resource.routes[1].path.should.equal('/articles/:article/comments/new.:format?');
+    resource.routes[2].path.should.equal('/articles/:article/comments.:format?');
+    resource.routes[3].path.should.equal('/articles/:article/comments/:comment.:format?');
+    resource.routes[4].path.should.equal('/articles/:article/comments/:comment/edit.:format?');
+    resource.routes[5].path.should.equal('/articles/:article/comments/:comment.:format?');
+    resource.routes[6].path.should.equal('/articles/:article/comments/:comment.:format?');
+  });
+  
+  it("should allow deep nesting", function() {
+    var deep;
+    app.resource('articles', { name: 'a' }, function() {
+      app.resource('comments', { name: 'c' }, function() {
+        deep = app.resource('comments', { name: 'deep' });
+      });
+    });
+    
+    deep.routes[0].path.should.equal('/a/:a/c/:c/deep.:format?');
+  });
+  
   it("should respond with correct action");
 });

@@ -125,6 +125,12 @@ $(Resource.prototype, {
       'id' : lingo.en.singularize(this.name);
   },
   
+  /**
+   * Return the base path (takes into account nesting).
+   * 
+   * @return {String}
+   */
+  
   _base: function() {
     var base;
     
@@ -150,6 +156,14 @@ $(Resource.prototype, {
       path: path
     });
   },
+  
+  /**
+   * Sets all the appropriate variables for nesting
+   * before calling the callback that creates the
+   * nested resources.
+   * 
+   * @param {Function} callback
+   */
   
   _nest: function(callback) {
     var prev = this.app._base;
@@ -224,6 +238,15 @@ $(Resource.prototype, {
 });
 
 var methods = {
+  
+  /**
+   * Requires modules from the `app.settings.controllers` path.
+   * This method uses caching so that multiple calls for the
+   * same controller don't require multiple calls to require.
+   * 
+   * @return {Object}
+   */
+  
   _load: function(name) {
     this._loaded = this._loaded || {};
     
@@ -235,13 +258,31 @@ var methods = {
     return this._loaded[name];
   },
   
-  addResource: function(resource, nested) {
+  /**
+   * Saves all resources into a table. The name used
+   * is generated from it's nesting path so that the
+   * same controller can be used in different levels.
+   * 
+   * @param {Resource} resource
+   */
+  
+  addResource: function(resource) {
     var name = this._trail.map(function(name) {
       return lingo.en.singularize(name);
     }).concat(resource.name).join('_');
     
     this.resources[name] = resource;
   },
+  
+  /**
+   * Loads the controller, creates the resouce object
+   * and handles nesting.
+   * 
+   * @param {String} name
+   * @param {Object} options
+   * @param {Function} callback
+   * @return {Resource}
+   */
   
   resource: function(name, options, callback) {
     if('function' == typeof options)
@@ -264,5 +305,6 @@ var methods = {
   }
 }
 
+// Load `methods` onto the server prototypes
 $(express.HTTPServer.prototype, methods);
 $(express.HTTPSServer.prototype, methods);
