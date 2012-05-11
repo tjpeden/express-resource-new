@@ -23,9 +23,9 @@ In your main application file (i.e. app.js or server.js) just add the following:
       /* ... */
     });
 
-Now in the `./controllers` directory you can put your "controllers" with one or more of the following supported actions as follows:
+Now in the `./controllers` directory you can put your "controllers" with one or more of the supported actions as follows:
 
-`./controllers/articles/index.js`
+`./controllers/articles/index.js`:
 
     module.exports = {
       index: function(request, response) {
@@ -51,7 +51,7 @@ Now in the `./controllers` directory you can put your "controllers" with one or 
       }
     };
 
-express-resource-new also supports a special action, `all`, that gets called for all other actions.
+express-resource-new also supports a special action, `all`, that gets called for all other actions in the resource.
 
     module.exports = {
       all: function(request, response, next) {
@@ -71,14 +71,14 @@ express-resource-new also supports a special action, `all`, that gets called for
         root: true, // Creates resource on the root path (overrides name)
         name: 'posts', // Overrides module name (folder name)
         id: 'id' // Overrides the default id from singular form of `name`
-      }
+      },
       index: function(request, response) {
         response.send('articles index');
       },
       /* ... */
     };
 
-Lastly just call `app.resource()` with your controller name. Nesting is done by passing a function that can call `app.resource()` for each nested resource. Options can also be passed as the second parameter.
+Lastly just call `app.resource()` with your controller name. Nesting is done by passing a function that can call `app.resource()` for each nested resource. Options can also be passed as the second parameter which override the options set in the controller itself.
 
     var express = require('express'),
         Resource = require('express-resource-new'),
@@ -96,7 +96,7 @@ Lastly just call `app.resource()` with your controller name. Nesting is done by 
 
 ## Default Action Mapping
 
-Actions are mapped, by default, as follows, providing `req.params.article` which contains the substring where ":article" is shown below:
+Actions are, by default, mapped as shown below. These routs provide `req.params.article` for the substring where ":article" is and, in the case of the nested routes, `req.params.comment` for the substring where ":comment" is as shown below:
 
     articles:
     index   GET     /articles.:format?
@@ -118,14 +118,13 @@ Actions are mapped, by default, as follows, providing `req.params.article` which
 
 ## Content Negotiation
 
-Content negotiation is currently only provided through the `req.params.format` property, responding accordingly.
+Content negotiation is currently only provided through the `req.params.format` property, allowing you to respond accordingly.
 
 ## License
 
     The MIT License
 
-    Copyright (c) 2010-2011 TJ Holowaychuk <tj@vision-media.ca>
-    Copyright (c) 2011 Daniel Gasienica <daniel@gasienica.ch>
+    Copyright (c) 2012 TJ Peden <tj.peden@tj-coding.com>
 
     Permission is hereby granted, free of charge, to any person obtaining
     a copy of this software and associated documentation files (the
