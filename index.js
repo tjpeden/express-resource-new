@@ -12,10 +12,10 @@
  * Module dependencies.
  */
  
-var express = require('express');
-var fs = require('fs');
-var path = require('path');
-var lingo = require('lingo');
+var express = require('express'),
+    fs = require('fs'),
+    path = require('path'),
+    lingo = require('lingo');
 
 /**
  * Pre-defined action ordering.
@@ -78,12 +78,13 @@ $(Resource.prototype, {
    */
   
   _init: function(actions) {
+    this.actions = actions;
     var self = this;
     
     orderedActions.forEach(function(action) {
-      if(!(action in actions)) return;
+      if(!(action in self.actions)) return;
       var path = self.path(action),
-          callback = actions[action],
+          callback = self.actions[action],
           method;
       
       switch(action) {
@@ -107,7 +108,7 @@ $(Resource.prototype, {
           break;
       }
       
-      if('all' != action) path += '.:format?';
+      path += '.:format?';
       
       self.map(method, path, callback)
         ._record(action, method, path);
@@ -170,7 +171,7 @@ $(Resource.prototype, {
     this.app._base = this.path('show');
     this.app._trail.push(this.name);
     
-    callback.apply(this.app);
+    callback.apply(this);
     
     this.app._base = prev;
     this.app._trail.pop();
@@ -222,6 +223,18 @@ $(Resource.prototype, {
     this.app[method](path, callback);
     return this;
   },
+  
+  member: function(method, action, callback) {
+    if(!callback && action in this.actions) {
+      callback = this.actions[action];
+    } else {
+      throw new Error("Action needs a callback!");
+    }
+    var path = this.path('show') + '/' + action;
+    
+    this.map(method, path, callback)
+      ._record(action, method, path);
+  }
   
   /**
    * Returns a rendering of all the routes mapped
