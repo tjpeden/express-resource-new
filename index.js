@@ -225,16 +225,18 @@ $(Resource.prototype, {
   },
   
   member: function(method, action, callback) {
-    if(!callback && action in this.actions) {
-      callback = this.actions[action];
-    } else {
-      throw new Error("Action needs a callback!");
+    if('undefined' == typeof callback) {
+      if(action in this.actions) {
+        callback = this.actions[action];
+      } else {
+        throw new Error("Action needs a callback!");
+      }
     }
-    var path = this.path('show') + '/' + action;
+    var path = this.path('show') + '/' + action + ".:format?";
     
     this.map(method, path, callback)
       ._record(action, method, path);
-  }
+  },
   
   /**
    * Returns a rendering of all the routes mapped

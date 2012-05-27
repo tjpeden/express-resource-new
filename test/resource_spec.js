@@ -61,7 +61,7 @@ describe("app.resource", function() {
   it("should create all the appropriate nested routes for a resource", function() {
     var resource;
     app.resource('articles', function() {
-      resource = this.resource('comments');
+      resource = app.resource('comments');
     });
     
     resource.routes[0].path.should.equal("/articles/:article/comments.:format?");
@@ -71,6 +71,22 @@ describe("app.resource", function() {
     resource.routes[4].path.should.equal('/articles/:article/comments/:comment/edit.:format?');
     resource.routes[5].path.should.equal('/articles/:article/comments/:comment.:format?');
     resource.routes[6].path.should.equal('/articles/:article/comments/:comment.:format?');
+  });
+  
+  it("should allow non-standard restfull routing", function() {
+    var articles, comments;
+    articles = app.resource('articles', function() {
+      this.member('get', 'bonus', function(request, response) {
+        response.send('BONUS!');
+      });
+      
+      comments = app.resource('comments', function() {
+        this.member('get', 'hide');
+      });
+    });
+    
+    articles.routes[7].path.should.equal("/articles/:article/bonus.:format?");
+    comments.routes[7].path.should.equal("/articles/:article/comments/:comment/hide.:format?");
   });
   
   it("should allow deep nesting", function() {

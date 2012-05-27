@@ -20,5 +20,8 @@ module.exports = {
   },
   destroy: function(request, response) {
     response.send({});
+  },
+  hide: function(request, response) {
+    response.send({});
   }
 };
