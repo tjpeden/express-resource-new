@@ -193,7 +193,9 @@ $(Resource.prototype, {
       case 'edit':
       case 'update':
       case 'destroy':
-        result += '/:' + this.id;
+        if(!/\/$/.test(result))
+          result += '/';
+        result += ':' + this.id;
       default: break;
     };
     
@@ -203,7 +205,9 @@ $(Resource.prototype, {
         break;
       case 'new':
       case 'edit':
-        result += '/' + action;
+        if(!/\/$/.test(result))
+          result += '/';
+        result += action;
       default: break;
     }
     

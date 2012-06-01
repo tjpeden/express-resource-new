@@ -65,12 +65,12 @@ describe("app.resource", function() {
     });
     
     resource.routes[0].path.should.equal("/articles/:article/comments.:format?");
-    resource.routes[1].path.should.equal('/articles/:article/comments/new.:format?');
-    resource.routes[2].path.should.equal('/articles/:article/comments.:format?');
-    resource.routes[3].path.should.equal('/articles/:article/comments/:comment.:format?');
-    resource.routes[4].path.should.equal('/articles/:article/comments/:comment/edit.:format?');
-    resource.routes[5].path.should.equal('/articles/:article/comments/:comment.:format?');
-    resource.routes[6].path.should.equal('/articles/:article/comments/:comment.:format?');
+    resource.routes[1].path.should.equal("/articles/:article/comments/new.:format?");
+    resource.routes[2].path.should.equal("/articles/:article/comments.:format?");
+    resource.routes[3].path.should.equal("/articles/:article/comments/:comment.:format?");
+    resource.routes[4].path.should.equal("/articles/:article/comments/:comment/edit.:format?");
+    resource.routes[5].path.should.equal("/articles/:article/comments/:comment.:format?");
+    resource.routes[6].path.should.equal("/articles/:article/comments/:comment.:format?");
   });
   
   it("should allow non-standard restfull routing", function() {
@@ -98,6 +98,18 @@ describe("app.resource", function() {
     });
     
     deep.routes[0].path.should.equal('/a/:a/c/:c/deep.:format?');
+  });
+  
+  it("should allow root level routes", function() {
+    var resource = app.resource('articles', { root: true });
+    
+    resource.routes[0].path.should.equal("/.:format?");
+    resource.routes[1].path.should.equal("/new.:format?");
+    resource.routes[2].path.should.equal("/.:format?");
+    resource.routes[3].path.should.equal("/:id.:format?");
+    resource.routes[4].path.should.equal("/:id/edit.:format?");
+    resource.routes[5].path.should.equal("/:id.:format?");
+    resource.routes[6].path.should.equal("/:id.:format?");
   });
   
   it("should respond with correct action");
