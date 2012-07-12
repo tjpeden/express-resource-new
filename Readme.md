@@ -51,6 +51,27 @@ Now in the `./controllers` directory you can put your "controllers" with one or 
       }
     };
 
+You can also create non-standard RESTful routes. (Currently only supports member level routes)
+
+`./controllers/articles/index.js`:
+
+    module.exports = {
+      index: function(request, response) {
+        response.send('articles index');
+      },
+      /* ... */
+      awesomeness: function(request, response) {
+        response.send("I am awesomeness! " + request.params.article);
+      }
+    };
+
+`./app.js`:
+
+    /* ... */
+    app.resource('articles', function() {
+      this.member('get', 'awesomeness');
+    });
+
 express-resource-new also supports a special action, `all`, that gets called for all other actions in the resource.
 
     module.exports = {
@@ -64,13 +85,18 @@ express-resource-new also supports a special action, `all`, that gets called for
       /* ... */
     };
 
-"What if I want to create a resource on the root path or change the id variable name?" express-resource-new handles that by allowing you to set an `options` property on the controller object like so:
+"What if I want to create a resource on the root path or change the id variable name or define middleware on specific actions?" express-resource-new handles that by allowing you to set an `options` property on the controller object like so:
 
     module.exports = {
       options: {
         root: true, // Creates resource on the root path (overrides name)
         name: 'posts', // Overrides module name (folder name)
-        id: 'id' // Overrides the default id from singular form of `name`
+        id: 'id', // Overrides the default id from singular form of `name`
+        before: { // Middleware support
+          show: auth,
+          update: [auth, owner],
+          destroy: [auth, owner]
+        }
       },
       index: function(request, response) {
         response.send('articles index');
@@ -91,7 +117,7 @@ Lastly just call `app.resource()` with your controller name. Nesting is done by 
     });
     
     app.resource('articles', function() {
-      app.resource('comments', { id: 'id' }); // You can also call this.resource('comments')
+      app.resource('comments', { id: 'id' }); // You can also call `this.resource('comments')`
     });
 
 ## Default Action Mapping
@@ -119,6 +145,10 @@ Actions are, by default, mapped as shown below. These routs provide `req.params.
 ## Content Negotiation
 
 Content negotiation is currently only provided through the `req.params.format` property, allowing you to respond accordingly.
+
+## Contributing
+
+Patches are welcome, fork away! :-)
 
 ## License
 

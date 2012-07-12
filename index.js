@@ -13,7 +13,6 @@
  */
  
 var express = require('express'),
-    fs = require('fs'),
     path = require('path'),
     lingo = require('lingo');
 
@@ -32,6 +31,12 @@ var orderedActions = [
   'update',
   'destroy'
 ];
+
+/**
+ * HTTP Methods
+ */
+
+var HTTPMethods = express.router.methods.concat('del');
 
 /**
  * Extend function.
@@ -60,21 +65,45 @@ function $(destination) { // extend
 
 var Resource = module.exports = function Resource(app, name, options) {
   this.app = app;
+  this.before = options.before;
   this.name = options.name || name;
   this.root = options.root || false;
   this.base = this._base();
   
   this.id = options.id || this._defaultId();
   
+  var self = this, member = {};
+  HTTPMethods.forEach(function(method) {
+    member[method] = function(action, callback) {
+      if(callback === undefined) {
+        if(action in self.actions) {
+          callback = self.actions[action];
+        } else {
+          throw new Error("Action needs a callback!");
+        }
+      }
+      
+      var path = self.path('show') + '/' + action + ".:format?", before;
+        
+      if(self.before && action in self.before) {
+        before = self.before[action];
+      }
+      
+      self.map(method, path, before, callback)
+        ._record(action, method, path);
+    };
+  });
+  
+  this.member = member;
   this.routes = [];
-}
+};
 
 $(Resource.prototype, {
   
   /**
    * Configure the default actions.
    * 
-   * @param {Object} actions
+   * @param {Object} actions
    */
   
   _init: function(actions) {
@@ -85,7 +114,7 @@ $(Resource.prototype, {
       if(!(action in self.actions)) return;
       var path = self.path(action),
           callback = self.actions[action],
-          method;
+          method, before;
       
       switch(action) {
         case 'all':
@@ -110,7 +139,11 @@ $(Resource.prototype, {
       
       path += '.:format?';
       
-      self.map(method, path, callback)
+      if(self.before && action in self.before) {
+        before = [].concat(self.before[action]);
+      }
+      
+      self.map(method, path, before, callback)
         ._record(action, method, path);
     });
   },
@@ -127,7 +160,7 @@ $(Resource.prototype, {
   },
   
   /**
-   * Return the base path (takes into account nesting).
+   *  Return the base path (takes into account nesting0.
    * 
    * @return {String}
    */
@@ -196,8 +229,7 @@ $(Resource.prototype, {
         if(!/\/$/.test(result))
           result += '/';
         result += ':' + this.id;
-      default: break;
-    };
+    }
     
     switch(action) {
       case 'all':
@@ -208,7 +240,6 @@ $(Resource.prototype, {
         if(!/\/$/.test(result))
           result += '/';
         result += action;
-      default: break;
     }
     
     return result;
@@ -219,28 +250,41 @@ $(Resource.prototype, {
    * 
    * @param {String} method
    * @param {String} path
+   * @param {String|Array} middleware
    * @param {Function} callback
    * @return {Resource} for chaining
    */
   
-  map: function(method, path, callback) {
-    this.app[method](path, callback);
+  map: function(method, path, middleware, callback) {
+    if(Array.isArray(middleware)) {
+      this.app[method].apply(this.app, [path].concat(middleware, callback));
+    } else {
+      this.app[method](path, callback);
+    }
     return this;
   },
   
-  member: function(method, action, callback) {
-    if('undefined' == typeof callback) {
-      if(action in this.actions) {
-        callback = this.actions[action];
-      } else {
-        throw new Error("Action needs a callback!");
-      }
-    }
-    var path = this.path('show') + '/' + action + ".:format?";
-    
-    this.map(method, path, callback)
-      ._record(action, method, path);
+  /**
+   * Alias for app.resource
+   * 
+   * @param {String} name
+   * @param {Object} options
+   * @param {Function} callback
+   * @return {Resource}
+   */
+  
+  resource: function(name, options, callback) {
+    return this.app.resource(name, options, callback);
   },
+  
+  /**
+   * Creates a member route for a given action.
+   * 
+   * @param {String} method HTTP Method
+   * @param {String} action Action name
+   * @param {Function} callback Optional
+   * @return {Resource} for chaining
+   */
   
   /**
    * Returns a rendering of all the routes mapped
@@ -262,7 +306,7 @@ var methods = {
    * Requires modules from the `app.settings.controllers` path.
    * This method uses caching so that multiple calls for the
    * same controller don't require multiple calls to require.
-   * 
+   * 
    * @return {Object}
    */
   
@@ -310,8 +354,7 @@ var methods = {
     this._trail = this._trail || [];
     this.resources = this.resources || {};
     var controller = this._load(name);
-    var options = $({}, controller.options, options);
-    var resource = new Resource(this, name, options);
+    var resource = new Resource(this, name, $({}, controller.options, options));
     
     this.addResource(resource);
     
@@ -322,7 +365,7 @@ var methods = {
     
     return resource;
   }
-}
+};
 
 // Load `methods` onto the server prototypes
 $(express.HTTPServer.prototype, methods);

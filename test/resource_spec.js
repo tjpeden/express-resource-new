@@ -76,12 +76,12 @@ describe("app.resource", function() {
   it("should allow non-standard restfull routing", function() {
     var articles, comments;
     articles = app.resource('articles', function() {
-      this.member('get', 'bonus', function(request, response) {
+      this.member.get('bonus', function(request, response) {
         response.send('BONUS!');
       });
       
-      comments = app.resource('comments', function() {
-        this.member('get', 'hide');
+      comments = this.resource('comments', function() {
+        this.member.get('hide');
       });
     });
     
