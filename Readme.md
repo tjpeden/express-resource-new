@@ -51,33 +51,6 @@ Now in the `./controllers` directory you can put your "controllers" with one or 
       }
     };
 
-You can also create non-standard RESTful routes.
-
-`./controllers/comments/index.js`:
-
-    module.exports = {
-      index: function(request, response) {
-        response.send('comments index');
-      },
-      /* ... */
-      search: function(request, response) {
-        response.send("Search all comments on this article.");
-      },
-      reply: function(request, response) {
-        response.send("Reply to comment: " + request.params.comment);
-      }
-    };
-
-`./app.js`:
-
-    /* ... */
-    app.resource('articles', function() {
-      this.resource('comments', function() {
-        this.collection.get('search');
-        this.member.get('reply');
-      });
-    });
-
 express-resource-new also supports a special action, `all`, that gets called for all other actions in the resource.
 
     module.exports = {
@@ -124,6 +97,33 @@ Lastly just call `app.resource()` with your controller name. Nesting is done by 
     
     app.resource('articles', function() {
       app.resource('comments', { id: 'id' }); // You can also call `this.resource('comments')`
+    });
+
+You can also create non-standard RESTful routes.
+
+`./controllers/comments/index.js`:
+
+    module.exports = {
+      index: function(request, response) {
+        response.send('comments index');
+      },
+      /* ... */
+      search: function(request, response) {
+        response.send("Search all comments on this article.");
+      },
+      reply: function(request, response) {
+        response.send("Reply to comment: " + request.params.comment);
+      }
+    };
+
+`./app.js`:
+
+    /* ... */
+    app.resource('articles', function() {
+      this.resource('comments', function() {
+        this.collection.get('search');
+        this.member.get('reply');
+      });
     });
 
 ## Default Action Mapping
