@@ -51,17 +51,20 @@ Now in the `./controllers` directory you can put your "controllers" with one or 
       }
     };
 
-You can also create non-standard RESTful routes. (Currently only supports member level routes)
+You can also create non-standard RESTful routes.
 
-`./controllers/articles/index.js`:
+`./controllers/comments/index.js`:
 
     module.exports = {
       index: function(request, response) {
-        response.send('articles index');
+        response.send('comments index');
       },
       /* ... */
-      awesomeness: function(request, response) {
-        response.send("I am awesomeness! " + request.params.article);
+      search: function(request, response) {
+        response.send("Search all comments on this article.");
+      },
+      reply: function(request, response) {
+        response.send("Reply to comment: " + request.params.comment);
       }
     };
 
@@ -69,7 +72,10 @@ You can also create non-standard RESTful routes. (Currently only supports member
 
     /* ... */
     app.resource('articles', function() {
-      this.member('get', 'awesomeness');
+      this.resource('comments', function() {
+        this.collection.get('search');
+        this.member.get('reply');
+      });
     });
 
 express-resource-new also supports a special action, `all`, that gets called for all other actions in the resource.

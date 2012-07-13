@@ -19,8 +19,7 @@ module.exports = {
     before: {
       show: auth,
       update: [auth, owner],
-      destroy: [auth, owner],
-      hide: [auth, owner]
+      destroy: [auth, owner]
     }
   },
   all: function(request, response, next) { next(); },
@@ -28,12 +27,7 @@ module.exports = {
     response.send('articles index');
   },
   show: function(request, response) {
-    var id = request.params.article;
-    if(hidden.indexOf(id) >= 0) {
-      response.send('article ' + id + ' is hidden.');
-    } else {
-      response.send('<a href="/articles/' + id + '/hide">hide</a>');
-    }
+    response.send('show article ' + request.params.article);
   },
   new: function(request, response) {
     response.send('new article');
@@ -49,9 +43,5 @@ module.exports = {
   },
   destroy: function(request, response) {
     response.send('delete article ' + request.params.article);
-  },
-  hide: function(request, response) {
-    hidden.push(request.params.article);
-    response.redirect('/articles/' + request.params.article);
   }
 };

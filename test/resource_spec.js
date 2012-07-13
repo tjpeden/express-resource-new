@@ -38,24 +38,24 @@ describe("app.resource", function() {
     var resource = app.resource('articles');
     
     resource.routes[0].path.should.equal("/articles.:format?");
-    resource.routes[1].path.should.equal('/articles/new.:format?');
-    resource.routes[2].path.should.equal('/articles.:format?');
-    resource.routes[3].path.should.equal('/articles/:article.:format?');
-    resource.routes[4].path.should.equal('/articles/:article/edit.:format?');
-    resource.routes[5].path.should.equal('/articles/:article.:format?');
-    resource.routes[6].path.should.equal('/articles/:article.:format?');
+    resource.routes[1].path.should.equal("/articles/new.:format?");
+    resource.routes[2].path.should.equal("/articles.:format?");
+    resource.routes[3].path.should.equal("/articles/:article.:format?");
+    resource.routes[4].path.should.equal("/articles/:article/edit.:format?");
+    resource.routes[5].path.should.equal("/articles/:article.:format?");
+    resource.routes[6].path.should.equal("/articles/:article.:format?");
   });
   
   it("should allow options to be passed in", function() {
     var resource = app.resource('articles', { name: 'posts', id: 'id' });
     
-    resource.routes[0].path.should.equal('/posts.:format?');
-    resource.routes[1].path.should.equal('/posts/new.:format?');
-    resource.routes[2].path.should.equal('/posts.:format?');
-    resource.routes[3].path.should.equal('/posts/:id.:format?');
-    resource.routes[4].path.should.equal('/posts/:id/edit.:format?');
-    resource.routes[5].path.should.equal('/posts/:id.:format?');
-    resource.routes[6].path.should.equal('/posts/:id.:format?');
+    resource.routes[0].path.should.equal("/posts.:format?");
+    resource.routes[1].path.should.equal("/posts/new.:format?");
+    resource.routes[2].path.should.equal("/posts.:format?");
+    resource.routes[3].path.should.equal("/posts/:id.:format?");
+    resource.routes[4].path.should.equal("/posts/:id/edit.:format?");
+    resource.routes[5].path.should.equal("/posts/:id.:format?");
+    resource.routes[6].path.should.equal("/posts/:id.:format?");
   });
   
   it("should create all the appropriate nested routes for a resource", function() {
@@ -81,12 +81,14 @@ describe("app.resource", function() {
       });
       
       comments = this.resource('comments', function() {
-        this.member.get('hide');
+        this.collection.get('search');
+        this.member.get('reply');
       });
     });
     
     articles.routes[7].path.should.equal("/articles/:article/bonus.:format?");
-    comments.routes[7].path.should.equal("/articles/:article/comments/:comment/hide.:format?");
+    comments.routes[7].path.should.equal("/articles/:article/comments/search.:format?");
+    comments.routes[8].path.should.equal("/articles/:article/comments/:comment/reply.:format?");
   });
   
   it("should allow deep nesting", function() {
@@ -97,7 +99,7 @@ describe("app.resource", function() {
       });
     });
     
-    deep.routes[0].path.should.equal('/a/:a/c/:c/deep.:format?');
+    deep.routes[0].path.should.equal("/a/:a/c/:c/deep.:format?");
   });
   
   it("should allow root level routes", function() {

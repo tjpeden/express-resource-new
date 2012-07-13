@@ -55,6 +55,36 @@ function $(destination) { // extend
 }
 
 /**
+ * Generates a method for a given http action.
+ * 
+ * @param {Resource} self
+ * @param {String} method
+ * @param {String} base (action)
+ * @return {Function}
+ */
+
+function httpMethod(self, method, base) {
+  return function(action, callback) {
+    if(callback === undefined) {
+      if(action in self.actions) {
+        callback = self.actions[action];
+      } else {
+        throw new Error("Action " + action + " needs a callback!");
+      }
+    }
+    
+    var path = self.path(base) + '/' + action + ".:format?", before;
+      
+    if(self.before && action in self.before) {
+      before = self.before[action];
+    }
+    
+    self._map(method, path, before, callback)
+      ._record(action, method, path);
+  };
+}
+
+/**
  * Initialize a new `Resource` with the
  * given `name` and `actions`.
  * 
@@ -72,29 +102,14 @@ var Resource = module.exports = function Resource(app, name, options) {
   
   this.id = options.id || this._defaultId();
   
-  var self = this, member = {};
+  var self = this, member = {}, collection = {};
   HTTPMethods.forEach(function(method) {
-    member[method] = function(action, callback) {
-      if(callback === undefined) {
-        if(action in self.actions) {
-          callback = self.actions[action];
-        } else {
-          throw new Error("Action needs a callback!");
-        }
-      }
-      
-      var path = self.path('show') + '/' + action + ".:format?", before;
-        
-      if(self.before && action in self.before) {
-        before = self.before[action];
-      }
-      
-      self.map(method, path, before, callback)
-        ._record(action, method, path);
-    };
+    member[method] = httpMethod(self, method, 'show');
+    collection[method] = httpMethod(self, method, 'index');
   });
   
   this.member = member;
+  this.collection = collection;
   this.routes = [];
 };
 
@@ -143,7 +158,7 @@ $(Resource.prototype, {
         before = [].concat(self.before[action]);
       }
       
-      self.map(method, path, before, callback)
+      self._map(method, path, before, callback)
         ._record(action, method, path);
     });
   },
@@ -211,6 +226,25 @@ $(Resource.prototype, {
   },
   
   /**
+   * Map http `method` and `path` to `callback`.
+   * 
+   * @param {String} method
+   * @param {String} path
+   * @param {String|Array} middleware
+   * @param {Function} callback
+   * @return {Resource} for chaining
+   */
+  
+  _map: function(method, path, middleware, callback) {
+    if(Array.isArray(middleware)) {
+      this.app[method].apply(this.app, [path].concat(middleware, callback));
+    } else {
+      this.app[method](path, callback);
+    }
+    return this;
+  },
+  
+  /**
    * Return a generated path for the given action
    * 
    * @param {String} action
@@ -246,25 +280,6 @@ $(Resource.prototype, {
   },
   
   /**
-   * Map http `method` and `path` to `callback`.
-   * 
-   * @param {String} method
-   * @param {String} path
-   * @param {String|Array} middleware
-   * @param {Function} callback
-   * @return {Resource} for chaining
-   */
-  
-  map: function(method, path, middleware, callback) {
-    if(Array.isArray(middleware)) {
-      this.app[method].apply(this.app, [path].concat(middleware, callback));
-    } else {
-      this.app[method](path, callback);
-    }
-    return this;
-  },
-  
-  /**
    * Alias for app.resource
    * 
    * @param {String} name
@@ -276,15 +291,6 @@ $(Resource.prototype, {
   resource: function(name, options, callback) {
     return this.app.resource(name, options, callback);
   },
-  
-  /**
-   * Creates a member route for a given action.
-   * 
-   * @param {String} method HTTP Method
-   * @param {String} action Action name
-   * @param {Function} callback Optional
-   * @return {Resource} for chaining
-   */
   
   /**
    * Returns a rendering of all the routes mapped

@@ -21,7 +21,10 @@ module.exports = {
   destroy: function(request, response) {
     response.send({});
   },
-  hide: function(request, response) {
+  search: function(request, response) {
+    response.send({});
+  },
+  reply: function(request, response) {
     response.send({});
   }
 };

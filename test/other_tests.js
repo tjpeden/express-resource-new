@@ -12,7 +12,10 @@ app.get('/', function(request, response) {
 });
 
 app.resource('articles', function() {
-  this.member.get('hide');
+  this.resource('comments', function() {
+    this.collection.get('search');
+    this.member.get('reply');
+  });
 });
 
 app.listen(process.env.PORT, process.env.IP, function(){
