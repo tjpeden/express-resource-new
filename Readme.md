@@ -1,3 +1,4 @@
+[![build status](https://secure.travis-ci.org/tpeden/express-resource-new.png)](http://travis-ci.org/tpeden/express-resource-new)
 # Express Resource (new)
 
 express-resouce-new provides resourceful routing to express with improved nesting and auto-require.
