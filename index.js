@@ -73,7 +73,10 @@ function httpMethod(self, method, base) {
       }
     }
     
-    var path = self.path(base) + '/' + action + ".:format?", before;
+    var path = self.path(base), before;
+    if(!/\/$/.test(path))
+          path += '/';
+    path += action + ".:format?";
       
     if(self.before && action in self.before) {
       before = self.before[action];
@@ -183,7 +186,7 @@ $(Resource.prototype, {
   _base: function() {
     var base;
     
-    if('_base' in this.app && this.app._base.length > 0) {
+    if('_base' in this.app && this.app._base && this.app._base.length > 0) {
       base = this.app._base + '/' + this.name;
     } else {
       base = '/' + (this.root ? '' : this.name);
@@ -221,7 +224,7 @@ $(Resource.prototype, {
     
     callback.apply(this);
     
-    this.app._base = prev;
+    this.app._base = prev || null;
     this.app._trail.pop();
   },
   
