@@ -10,7 +10,7 @@
   "dependencies": { "lingo": ">=0.0.4" },
   "devDependencies": {
     "connect": "*",
-    "express": "*",
+    "express": "2.x",
     "mocha": "*",
     "should": "*"
   },
