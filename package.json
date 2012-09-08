@@ -7,10 +7,13 @@
     "url": "https://github.com/tpeden/express-resource-new"
   },
   "author": "TJ Peden <tj.peden@tj-coding.com>",
-  "dependencies": { "lingo": ">=0.0.4" },
+  "dependencies": { 
+    "lingo": ">=0.0.4",
+    "methods": "0.0.1"
+  },
   "devDependencies": {
     "connect": "*",
-    "express": "2.x",
+    "express": "3.x",
     "mocha": "*",
     "should": "*"
   },
