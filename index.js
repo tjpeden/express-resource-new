@@ -14,7 +14,8 @@
  
 var express = require('express'),
     path = require('path'),
-    lingo = require('lingo');
+    lingo = require('lingo'),
+    HTTPMethods = require('methods').concat('del');
 
 /**
  * Pre-defined action ordering.
@@ -31,12 +32,6 @@ var orderedActions = [
   'update',
   'destroy'
 ];
-
-/**
- * HTTP Methods
- */
-
-var HTTPMethods = express.router.methods.concat('del');
 
 /**
  * Extend function.
@@ -377,5 +372,14 @@ var methods = {
 };
 
 // Load `methods` onto the server prototypes
-$(express.HTTPServer.prototype, methods);
-$(express.HTTPSServer.prototype, methods);
+// Express 2.x
+if (express.HTTPServer) {
+  $(express.HTTPServer.prototype, methods);
+}
+if (express.HTTPSServer) {
+  $(express.HTTPSServer.prototype, methods);
+}
+// Express 3.x
+if (express.application) {
+  $(express.application, methods);
+}
