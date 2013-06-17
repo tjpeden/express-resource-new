@@ -156,7 +156,7 @@ $(Resource.prototype, {
         before = [].concat(self.before[action]);
       }
       
-      self._map(method, path, before, callback)
+      self._map(method, path, before, callback.bind(actions))
         ._record(action, method, path);
     });
   },
