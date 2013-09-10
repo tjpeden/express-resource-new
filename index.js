@@ -168,8 +168,9 @@ $(Resource.prototype, {
    */
   
   _defaultId: function() {
+    var resourceName = this.name.match(/(?:\S+\/)?(\S+)/)[1];
     return this.root ?
-      'id' : lingo.en.singularize(this.name);
+      'id' : lingo.en.singularize(resourceName);
   },
   
   /**
