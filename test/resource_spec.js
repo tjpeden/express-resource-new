@@ -7,7 +7,7 @@ describe("app.resource", function() {
   var app;
   
   beforeEach(function() {
-    app = express.createServer();
+    app = express();
 
     app.configure(function(){
       app.set('controllers', __dirname + '/controllers');
