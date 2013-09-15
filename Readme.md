@@ -15,7 +15,7 @@ In your main application file (i.e. app.js or server.js) just add the following:
 
     var express = require('express'),
         Resource = require('express-resource-new'), // <- Add this (Resource really isn't needed)
-        app = express.createServer();
+        app = express.createServer(); // obs.: express 3.x use 'express();' instead
     
     app.configure(function(){
       app.set('views', __dirname + '/views');
@@ -56,7 +56,7 @@ express-resource-new also supports a special action, `all`, that gets called for
 
     module.exports = {
       all: function(request, response, next) {
-        // do some preloading or user authentication here
+        // redirect all 
         next();
       },
       index: function(request, response) {
@@ -64,6 +64,22 @@ express-resource-new also supports a special action, `all`, that gets called for
       },
       /* ... */
     };
+
+It overwrites `redirect` method in response and create `reverse` method too.
+
+    module.exports = {
+      all: function(request, response, next) {
+        // do some preloading or user authentication here
+        // `resource` must be set, action defaults to `index`
+        var path = response.reverse({resource:'users'})
+      },
+      /*  */
+      edit: function(request, response) {
+        // obs.: express 2.x status is the last argument
+        response.redirect(301, {resource:'profile', action:'edit', profile:request.params.user});
+      }
+    };
+
 
 "What if I want to create a resource on the root path or change the id variable name or define middleware on specific actions?" express-resource-new handles that by allowing you to set an `options` property on the controller object like so:
 
