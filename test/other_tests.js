@@ -1,7 +1,7 @@
 var express = require('express'),
     Resource = require('../');
 
-var app = express.createServer();
+var app = express();
 
 app.configure(function(){
   app.set('controllers', __dirname + '/controllers');
