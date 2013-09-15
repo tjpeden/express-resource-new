@@ -306,6 +306,8 @@ $(Resource.prototype, {
 
 var methods = {
   
+  resources: {},
+
   /**
    * Requires modules from the `app.settings.controllers` path.
    * This method uses caching so that multiple calls for the
@@ -325,6 +327,18 @@ var methods = {
     return this._loaded[name];
   },
   
+  /**
+   * Get resource by name
+   *
+   * @param {String} resource
+   * @return {Resource}
+   */
+
+  getResource: function(resource) {
+    if(!this.resources[resource]) return new Resource(this, resource, {});
+    return this.resources[resource];
+  },
+
   /**
    * Saves all resources into a table. The name used
    * is generated from it's nesting path so that the
@@ -369,6 +383,51 @@ var methods = {
     
     return resource;
   }
+};
+
+// overwrite redirect and create reverse ... works with Express 2.x and 3.x
+var response  = (express.response || require("http").ServerResponse.prototype),
+    _redirect = response.redirect;
+
+/**
+ * reverse resource routes
+ * 
+ * @param {Object} options
+ * @return {String}
+ */
+
+response.reverse = function(opts) {
+  if(!opts.resource) throw new Error('`resource` must be set');
+
+  opts.action  = opts.action || 'index';
+  var i        = 0,
+    path       = '',
+    routes     = (
+          express.application || 
+          (express.HTTPServer || express.HTTPSServer).prototype
+        ).getResource(opts.resource).routes;
+
+  for(i in routes)
+    if(routes[i].action==opts.action)
+      path = routes[i].path
+
+  return path.replace(
+          /\/??(\.?\:[^\/?\.?]+\??)/g,
+          function(match, content) {
+            var key = content.replace(/[\.?\:\??]/g, '');
+            return opts[key] ?
+              match.replace(':'+ key +(content.slice(-1)=='?' ? '?' : ''), opts[key]) :
+              match.replace(content, '')
+          });
+};
+
+response.redirect = function() {
+  if('string' != typeof arguments[0])
+    arguments[0] = this.reverse(arguments[0])
+  if(arguments.length==2 && 'object' == typeof arguments[1])
+    arguments[1] = this.reverse(arguments[1])
+
+  _redirect.apply(this, arguments)
 };
 
 // Load `methods` onto the server prototypes
