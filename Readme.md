@@ -56,7 +56,7 @@ express-resource-new also supports a special action, `all`, that gets called for
 
     module.exports = {
       all: function(request, response, next) {
-        // redirect all 
+        // do some preloading or user authentication here
         next();
       },
       index: function(request, response) {
@@ -71,7 +71,9 @@ It overwrites `redirect` method in response and create `reverse` method too.
       all: function(request, response, next) {
         // do some preloading or user authentication here
         // `resource` must be set, action defaults to `index`
-        var path = response.reverse({resource:'users'})
+        var usersPath = response.reverse({resource:'users'})
+        // do other stuff ...
+        next();
       },
       /*  */
       edit: function(request, response) {
