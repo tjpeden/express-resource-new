@@ -7,7 +7,7 @@ describe("app.resource", function() {
   var app;
   
   beforeEach(function() {
-    app = express.createServer();
+    app = express();
 
     app.configure(function(){
       app.set('controllers', __dirname + '/controllers');
@@ -114,5 +114,12 @@ describe("app.resource", function() {
     resource.routes[6].path.should.equal("/:id.:format?");
   });
   
-  it("should respond with correct action");
+  it("should not generate parameter names with slash", function() {
+    var resource = app.resource('admin/users');
+
+    resource.routes[3].path.should.equal("/admin/users/:user.:format?");
+    resource.routes[4].path.should.equal("/admin/users/:user/edit.:format?");
+    resource.routes[5].path.should.equal("/admin/users/:user.:format?");
+    resource.routes[6].path.should.equal("/admin/users/:user.:format?");
+  });
 });

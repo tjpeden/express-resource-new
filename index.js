@@ -14,6 +14,7 @@
  
 var express = require('express'),
     path = require('path'),
+    fs = require('fs'),
     lingo = require('lingo'),
     HTTPMethods = require('methods').concat('del');
 
@@ -83,6 +84,30 @@ function httpMethod(self, method, base) {
 }
 
 /**
+* Camelize strings
+* 
+* @param {String} s
+* @return {String}
+*/
+
+function camelize(s) {
+  return s.replace(/(\-|_|\s)+(.)?/g, function(m, s, c) {
+      return (c ? c.toUpperCase() : '');
+    })
+}
+
+/**
+* Capitalize strings
+*
+* @param {String} s
+* @return {String}
+*/
+
+function capitalize(s) {
+  return s.substr(0, 1).toUpperCase() + s.substr(1).toLowerCase();
+}
+
+/**
  * Initialize a new `Resource` with the
  * given `name` and `actions`.
  * 
@@ -91,7 +116,7 @@ function httpMethod(self, method, base) {
  * @param {Server} app
  */
 
-var Resource = module.exports = function Resource(app, name, options) {
+var Resource = function Resource(app, name, options) {
   this.app = app;
   this.before = options.before;
   this.name = options.name || name;
@@ -105,7 +130,7 @@ var Resource = module.exports = function Resource(app, name, options) {
     member[method] = httpMethod(self, method, 'show');
     collection[method] = httpMethod(self, method, 'index');
   });
-  
+
   this.member = member;
   this.collection = collection;
   this.routes = [];
@@ -155,7 +180,7 @@ $(Resource.prototype, {
       if(self.before && action in self.before) {
         before = [].concat(self.before[action]);
       }
-      
+
       self._map(method, path, before, callback)
         ._record(action, method, path);
     });
@@ -168,8 +193,9 @@ $(Resource.prototype, {
    */
   
   _defaultId: function() {
+    var resourceName = this.name.match(/(?:\S+\/)?(\S+)/)[1];
     return this.root ?
-      'id' : lingo.en.singularize(this.name);
+      'id' : lingo.en.singularize(resourceName);
   },
   
   /**
@@ -304,8 +330,11 @@ $(Resource.prototype, {
   }
 });
 
-var methods = {
+var methods;
+methods = {
   
+  resources: {},
+
   /**
    * Requires modules from the `app.settings.controllers` path.
    * This method uses caching so that multiple calls for the
@@ -316,15 +345,43 @@ var methods = {
   
   _load: function(name) {
     this._loaded = this._loaded || {};
-    
+
     if(!(name in this._loaded)) {
-      var dir = this.settings.controllers;
-      this._loaded[name] = require(path.join(dir, name));
+      var names = [
+            name + '.js',
+            capitalize(name) + '.js',
+            camelize(name) + '.js',
+            capitalize(camelize(name)) + '.js',
+            name
+          ],
+          absolutePath = '';
+
+      for(var yz=0; yz < names.length; ++yz) {
+        if(fs.existsSync(path.join(this.settings.controllers, names[yz]))) {
+          absolutePath = path.join(this.settings.controllers, names[yz]);
+          break
+        }
+      }
+
+      this._loaded[name] = require(absolutePath);
+      return this._loaded[name]
+    } else {
+      return this._loaded[name]
     }
-    
-    return this._loaded[name];
   },
   
+  /**
+   * Get resource by name
+   *
+   * @param {String} resource
+   * @return {Resource}
+   */
+
+  getResource: function(resource) {
+    if(!this.resources[resource]) return new Resource(this, resource, {});
+    return this.resources[resource];
+  },
+
   /**
    * Saves all resources into a table. The name used
    * is generated from it's nesting path so that the
@@ -358,6 +415,12 @@ var methods = {
     this._trail = this._trail || [];
     this.resources = this.resources || {};
     var controller = this._load(name);
+
+    // to use with express-train
+    if('function'==typeof controller)
+      controller = controller();
+
+    // new resource
     var resource = new Resource(this, name, $({}, controller.options, options));
     
     this.addResource(resource);
@@ -366,10 +429,67 @@ var methods = {
     if('function' == typeof callback) {
       resource._nest(callback);
     }
-    
+
     return resource;
   }
 };
+
+var middleware = function middleware(xapp) {
+
+  if('undefined' == typeof xapp.resource)
+    $(xapp, methods)
+
+  // overwrite redirect and create reverse ... works with Express 2.x and 3.x
+  var response  = (xapp.response || require("http").ServerResponse.prototype),
+      _redirect = response.redirect;
+
+  /**
+   * reverse resource routes
+   * 
+   * @param {Object} options
+   * @return {String}
+   */
+
+  response.reverse = function(opts) {
+    if(!opts.resource) throw new Error('`resource` not set');
+
+    opts.action  = opts.action || 'index';
+    var i        = 0,
+      path       = '',
+      routes     = (xapp || (express.HTTPServer || express.HTTPSServer).prototype)
+                    .getResource(opts.resource).routes;
+
+    for(i in routes)
+      if(routes[i].action==opts.action)
+        path = routes[i].path
+
+    return path.replace(
+            /\/??(\.?\:[^\/?\.?]+\??)/g,
+            function(match, content) {
+              var key = content.replace(/[\.?\:\??]/g, '');
+              return opts[key] ?
+                match.replace(':'+ key +(content.slice(-1)=='?' ? '?' : ''), opts[key]) :
+                match.replace(content, '')
+            });
+  };
+
+  /**
+  * overwrite response redirect, accepts reverse resource object
+  */
+
+  response.redirect = function() {
+    if('string' != typeof arguments[0])
+      arguments[0] = this.reverse(arguments[0])
+    if(arguments.length==2 && 'object' == typeof arguments[1])
+      arguments[1] = this.reverse(arguments[1])
+
+    _redirect.apply(this, arguments)
+  };
+
+  return function resource(req, res, nxt) {
+    nxt()
+  }
+}
 
 // Load `methods` onto the server prototypes
 // Express 2.x
@@ -382,4 +502,10 @@ if (express.HTTPSServer) {
 // Express 3.x
 if (express.application) {
   $(express.application, methods);
+}
+
+// exports
+module.exports = {
+  Resource: Resource,
+  middleware: middleware
 }
