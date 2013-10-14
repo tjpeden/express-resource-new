@@ -114,13 +114,21 @@ var Resource = module.exports = function Resource(app, name, options) {
 $(Resource.prototype, {
   
   /**
-   * Configure the default actions.
+   * initialize the resource object.
    * 
    * @param {Object} actions
    */
   
   _init: function(actions) {
     this.actions = actions;
+  },
+
+  /**
+   * Configure the default actions.
+   *
+   */
+
+  _defaultMapping: function(){
     var self = this;
     
     orderedActions.forEach(function(action) {
@@ -366,6 +374,7 @@ var methods = {
     if('function' == typeof callback) {
       resource._nest(callback);
     }
+    resource._defaultMapping();
     
     return resource;
   }
