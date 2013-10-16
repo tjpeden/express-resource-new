@@ -7,7 +7,7 @@ describe("app.resource", function() {
   var app;
   
   beforeEach(function() {
-    app = express.createServer();
+    app = express();
 
     app.configure(function(){
       app.set('controllers', __dirname + '/controllers');
@@ -30,8 +30,8 @@ describe("app.resource", function() {
       comments = app.resource('comments');
     });
     
-    app.resources.should.be.a('object').and.have.property('articles', articles);
-    app.resources.should.be.a('object').and.have.property('article_comments', comments);
+    app.resources.should.be.an.Object.and.have.property('articles', articles);
+    app.resources.should.be.an.Object.and.have.property('article_comments', comments);
   });
   
   it("should create all the appropriate routes for a resource", function() {
@@ -86,9 +86,9 @@ describe("app.resource", function() {
       });
     });
     
-    articles.routes[7].path.should.equal("/articles/:article/bonus.:format?");
-    comments.routes[7].path.should.equal("/articles/:article/comments/search.:format?");
-    comments.routes[8].path.should.equal("/articles/:article/comments/:comment/reply.:format?");
+    articles.routes[0].path.should.equal("/articles/:article/bonus.:format?");
+    comments.routes[0].path.should.equal("/articles/:article/comments/search.:format?");
+    comments.routes[1].path.should.equal("/articles/:article/comments/:comment/reply.:format?");
   });
   
   it("should allow deep nesting", function() {
@@ -114,5 +114,5 @@ describe("app.resource", function() {
     resource.routes[6].path.should.equal("/:id.:format?");
   });
   
-  it("should respond with correct action");
+  //it("should respond with correct action");
 });
