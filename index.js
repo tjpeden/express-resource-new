@@ -74,7 +74,7 @@ function httpMethod(self, method, base) {
     path += action + ".:format?";
       
     if(self.before && action in self.before) {
-      before = self.before[action];
+      before = [].concat(self.before[action]);
     }
     
     self._map(method, path, before, callback)
