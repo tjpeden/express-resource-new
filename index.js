@@ -109,6 +109,11 @@ var Resource = module.exports = function Resource(app, name, options) {
   this.member = member;
   this.collection = collection;
   this.routes = [];
+
+  if ( options.load )
+  {
+    this._addResourceLoader(options.load);
+  }
 };
 
 $(Resource.prototype, {
@@ -203,6 +208,29 @@ $(Resource.prototype, {
       path: path
     });
   },
+
+ /**
+   * Adds middleware to provide a universal resource
+   * loader for routes that contain the resource :id. This
+   * will populate the req.[param] with the object returned from
+   * the loading function provided in the controller
+   *
+   * @param {Function} loaderFn
+   */
+   _addResourceLoader: function(loaderFn) {
+    var id = this.id;
+    this.app.param(this.id, function(req, res, next) {
+      function callback(err, obj) {
+        if (err) return next(err);
+
+        if ( null === obj ) return res.send(404);
+        req[id] = obj;
+        next();
+      }
+
+      loaderFn(req, req.params[id], callback);
+    });
+   },
   
   /**
    * Sets all the appropriate variables for nesting

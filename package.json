@@ -1,10 +1,10 @@
 {
   "name": "express-resource-new",
   "description": "An enhancement to express-resource",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tpeden/express-resource-new"
+    "url": "https://github.com/sabymike/express-resource-new"
   },
   "author": "TJ Peden <tj.peden@tj-coding.com>",
   "dependencies": { 
