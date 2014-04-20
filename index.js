@@ -30,7 +30,8 @@ var orderedActions = [
   'show',
   'edit',
   'update',
-  'destroy'
+  'destroy',
+  'default'
 ];
 
 /**
@@ -130,6 +131,9 @@ $(Resource.prototype, {
           method, before;
       
       switch(action) {
+        case 'default':
+          self.app.all(path.replace(/\/$/, "") + '/*', callback);
+          return;
         case 'all':
           self.app.all(path, callback);
           return;
