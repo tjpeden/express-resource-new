@@ -12,8 +12,7 @@
  * Module dependencies.
  */
  
-var express = require('express'),
-    path = require('path'),
+var path = require('path'),
     lingo = require('lingo'),
     HTTPMethods = require('methods').concat('del');
 
@@ -91,7 +90,7 @@ function httpMethod(self, method, base) {
  * @param {Server} app
  */
 
-var Resource = module.exports = function Resource(app, name, options) {
+var Resource = function Resource(app, name, options) {
   this.app = app;
   this.before = options.before;
   this.name = options.name || name;
@@ -168,8 +167,9 @@ $(Resource.prototype, {
    */
   
   _defaultId: function() {
+    var resourceName = this.name.match(/(?:\S+\/)?(\S+)/)[1];
     return this.root ?
-      'id' : lingo.en.singularize(this.name);
+      'id' : lingo.en.singularize(resourceName);
   },
   
   /**
@@ -260,7 +260,7 @@ $(Resource.prototype, {
       case 'destroy':
         if(!/\/$/.test(result))
           result += '/';
-        result += ':' + this.id;
+        result += ':id';
     }
     
     switch(action) {
@@ -371,15 +371,19 @@ var methods = {
   }
 };
 
-// Load `methods` onto the server prototypes
-// Express 2.x
-if (express.HTTPServer) {
-  $(express.HTTPServer.prototype, methods);
-}
-if (express.HTTPSServer) {
-  $(express.HTTPSServer.prototype, methods);
-}
-// Express 3.x
-if (express.application) {
-  $(express.application, methods);
-}
+module.exports = function(express) {
+
+  // Load `methods` onto the server prototypes
+  // Express 2.x
+  if (express.HTTPServer) {
+    $(express.HTTPServer.prototype, methods);
+  }
+  if (express.HTTPSServer) {
+    $(express.HTTPSServer.prototype, methods);
+  }
+  // Express 3.x
+  if (express.application) {
+    $(express.application, methods);
+  }
+
+};
